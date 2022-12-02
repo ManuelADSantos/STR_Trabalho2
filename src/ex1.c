@@ -1,34 +1,15 @@
 #include <stdio.h>
-#include <fcntl.h>
-#include <string.h>
-#include <unistd.h>
+#include <stdlib.h>
+#include <math.h>
+#include <limits.h>
+#include <time.h> //clock_gettime
 
-#define BUF_SIZE 30
+// Store LiDAR points in a struct
 
-void read_textin(void);
-
-int main(int argc, char *argv[])
+struct point_cloud // coordinates of a point c -> x[c], y[c], z[c]
 {
-    read_textin();
-    return 0;
-}
-
-void read_textin(void)
-{
-    // Open file text.in to read content
-    int read_file = open("../point_clouds/point_cloud1.txt", O_RDONLY);
-
-    while (1)
-    {
-        // Create buffer to read to
-        char read_buffer[BUF_SIZE] = "";
-
-        // Read from file to buffer
-        read(read_file, read_buffer, sizeof(read_buffer));
-
-        // Print what's been read
-        printf("%s\n", read_buffer);
-    }
-    // Close file text.in
-    close(read_file);
-}
+    int n; // number of points
+    double *x;
+    double *y;
+    double *z;
+};
