@@ -13,3 +13,8 @@ struct point_cloud // coordinates of a point c -> x[c], y[c], z[c]
     double *y;
     double *z;
 };
+
+int main(int argc, char *argv[])
+{
+    return 0;
+}
