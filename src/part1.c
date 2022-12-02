@@ -6,7 +6,7 @@
 
 // Store LiDAR points in a struct
 
-typedef struct 
+typedef struct
 {          // coordinates of a point c -> x[c], y[c], z[c]
     int n; // number of points
     double *x;
@@ -20,12 +20,13 @@ point_struct read_points(char *filename)
     size_t line = 0;
     char *buffer = NULL;
     FILE *fp;
-    double *x, *y, *z;
-    point_struct pontos;
 
-    // pontos = (struct point_cloud *)malloc(sizeof(struct point_cloud)); // allocate memory for the struct
-    //  pontos.n = 0;
-    
+    double *x, *y, *z;
+    point_struct *points;
+
+    points = malloc(sizeof(point_struct)); // allocate memory for the struct
+    points->n = 0;
+
     // Open file
     fp = fopen(filename, "r");
     if (fp == NULL)
@@ -34,13 +35,21 @@ point_struct read_points(char *filename)
         exit(1);
     }
 
-    // count lines in file - number of lines = number of points
+    // count lines in file
     while (getline(&buffer, &line, fp) >= 0)
     {
-        pontos.n = pontos.n + 1;
+        points->n++;
     }
+    free(buffer);
+    buffer = NULL;
+    fseek(fp, SEEK_SET, 0); // rewind file pointer to the beginning of the file
 
-    // return pontos;
+    // allocate memory for the points
+    points->x = (double *)malloc(points->n * sizeof(double));
+    points->y = (double *)malloc(points->n * sizeof(double));
+    points->z = (double *)malloc(points->n * sizeof(double));
+
+    // return points;
 }
 
 int main(int argc, char *argv[])
