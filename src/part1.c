@@ -37,3 +37,10 @@ point_cloud read_points(char *filename)
 
     return pontos;
 }
+
+int main(int argc, char *argv[])
+{
+    printf("Hello world!");
+
+    return 0;
+}
