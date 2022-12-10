@@ -185,14 +185,17 @@ void road_detection(point_struct *points)
 {
     double minZ = INT_MIN;
     double maxZ = INT_MAX;
+
     int size = points->n;
     int search[size];
     int delete[size];
 
     for (int i = 0; i < size; i++)
     {
-        search[i] = i;
+        search[i] = i; // initialize the search array with the indexes
     }
+
+
 }
 
 int main(int argc, char *argv[])
@@ -202,13 +205,17 @@ int main(int argc, char *argv[])
     char f3[] = "point_cloud3.txt";
 
     point_struct points1, points2, points3;
-
+    struct timespec start, end;
     int initial_size, after_process_size;
 
     // f1
     printf("Reading points from file 1\n");
-
+    clock_gettime(CLOCK_MONOTONIC, &start);
+    
     points1 = read_points(f1);
+
+    clock_gettime(CLOCK_MONOTONIC, &end);
+    
     initial_size = points1.n;
     printf("Initial size: %d\n", initial_size);
 
