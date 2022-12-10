@@ -17,8 +17,9 @@ typedef struct
     double *z;
 } point_struct;
 
+// ==== EXERCISE 1.) ====
 // Read LiDAR points from a file
-point_struct read_points(char *filename)
+point_struct read_points(char *filename) // recieve a file name and return a struct with the points
 {
     size_t line = 0;
     char *buffer = NULL;
@@ -133,9 +134,9 @@ point_struct read_points(char *filename)
 
     return *points;
 }
-
-// pre-processing the points
-void decrease_points(point_struct *points)
+// ==== EXERCISE 2.a) ====
+// remove points that are too far away or behind the car
+void decrease_points(point_struct *points) // pre-processing the points
 {
     int nr = points->n;
     printf("Number of points: %d\n", nr);
