@@ -1,11 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
 #include <limits.h>
+#include <math.h>
 #include <time.h> //clock_gettime
-#define MIN_VALUE 10.0
-// Store LiDAR points in a struct
 
+#define MIN_VALUE 10.0
+#define TOO_FAR_X 20.0
+#define TOO_FAR_Y 20.0
+
+// Store LiDAR points in a struct
 typedef struct
 {          // coordinates of a point c -> x[c], y[c], z[c]
     int n; // number of points
@@ -116,16 +119,123 @@ point_struct read_points(char *filename)
     stdZ = stdZ / ((points->n) - 1);
 
     // take the square root
-    stdX = sqrt(stdX / points->n);
-    stdY = sqrt(stdY / points->n);
-    stdZ = sqrt(stdZ / points->n);
+    stdX = sqrt(stdX);
+    stdY = sqrt(stdY);
+    stdZ = sqrt(stdZ);
 
-    // return points;
+    // print the results
+    // printf("Number of points: %d\n", points->n);
+    printf("Max X: %lf, Min X: %lf, Std X: %lf, Mean X: %lf\n", maxX, minX, stdX, meanX);
+    printf("Max Y: %lf, Min Y: %lf, Std Y: %lf, Mean Y: %lf\n", maxY, minY, stdY, meanY);
+    printf("Max Z: %lf, Min Z: %lf, Std Z: %lf, Mean Z: %lf\n", maxZ, minZ, stdZ, meanZ);
+
+    fclose(fp);
+
+    return *points;
+}
+
+// pre-processing the points
+void decrease_points(point_struct *points)
+{
+    int nr = points->n;
+    printf("Number of points: %d\n", nr);
+    int i = 0;
+
+    while (i < nr)
+    {
+        if (points->x[i] > TOO_FAR_X || abs(points->y[i]) > TOO_FAR_Y) // remove points that are too far away
+        {
+            if (i < (nr - 1))
+            {
+                points->x[i] = points->x[i + 1];
+                points->y[i] = points->y[i + 1];
+                points->z[i] = points->z[i + 1];
+                points->n--;
+            }
+            else
+            {
+                points->n--;
+            }
+            i++;
+        }
+        else if (points->x[i] <= 2.0 && (i > 0)) // remove points that are behind the car
+        {
+            if (i < (nr - 1))
+            {
+                points->x[i] = points->x[i + 1];
+                points->y[i] = points->y[i + 1];
+                points->z[i] = points->z[i + 1];
+                points->n--;
+            }
+            else
+            {
+                points->n--;
+            }
+            i++;
+        }
+        else
+        {
+            i++;
+        }
+    }
+}
+
+void road_detection(point_struct *points)
+{
+    double minZ = INT_MIN;
+    double maxZ = INT_MAX;
+    int size = points->n;
+    int search[size];
+    int delete[size];
+
+    for (int i = 0; i < size; i++)
+    {
+        search[i] = i;
+    }
 }
 
 int main(int argc, char *argv[])
 {
-    printf("Hello world!");
+    char f1[] = "point_cloud1.txt";
+    char f2[] = "point_cloud2.txt";
+    char f3[] = "point_cloud3.txt";
+
+    point_struct points1, points2, points3;
+
+    int initial_size, after_process_size;
+
+    // f1
+    printf("Reading points from file 1\n");
+
+    points1 = read_points(f1);
+    initial_size = points1.n;
+    printf("Initial size: %d\n", initial_size);
+
+    decrease_points(&points1);
+    after_process_size = points1.n;
+    printf("After process size: %d\n", after_process_size);
+
+    // f2
+    printf("\n\nReading points from file 2\n\n");
+
+    points2 = read_points(f2);
+    initial_size = points2.n;
+    printf("Initial size: %d\n", initial_size);
+
+    decrease_points(&points2);
+    after_process_size = points2.n;
+    printf("After process size: %d\n", after_process_size);
+
+    // f3
+    printf("\n\nReading points from file 3\n\n");
+
+    points3 = read_points(f3);
+    initial_size = points3.n;
+    printf("Initial size: %d\n", initial_size);
+
+    decrease_points(&points3);
+    after_process_size = points3.n;
+    printf("After process size: %d\n", after_process_size);
 
     return 0;
 }
