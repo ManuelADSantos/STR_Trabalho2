@@ -288,11 +288,11 @@ int main(int argc, char *argv[])
 
     point_struct points1, points2, points3;
     struct timespec start, end;
-    int initial_size, after_process_size;
+    int after_process_size;
 
     // f1
     divider();
-    printf("\n === Reading points from file 1 === \n");
+    printf("\n  Reading points from file 1 ... \n");
 
     clock_gettime(CLOCK_MONOTONIC, &start);
     points1 = read_points(f1);
@@ -310,25 +310,24 @@ int main(int argc, char *argv[])
 
     divider();
     // f2
-    printf("\nReading points from file 2\n");
+    printf("\n  Reading points from file 2 ... \n");
     clock_gettime(CLOCK_MONOTONIC, &start);
     points2 = read_points(f2);
     clock_gettime(CLOCK_MONOTONIC, &end);
     calc = time_between_timestamp(start, end);
     printf("Time to read points of file 2: %lf\n", calc);
 
-    initial_size = points2.n;
-    printf("Initial size: %d\n", initial_size);
     clock_gettime(CLOCK_MONOTONIC, &start);
     decrease_points(&points2);
     clock_gettime(CLOCK_MONOTONIC, &end);
-    after_process_size = points2.n;
-    printf("After processing size: %d\n", after_process_size);
     calc = time_between_timestamp(start, end);
-    printf("Time to process points of file 2: %lf\n", calc);
+    printf("\nTime to process points of file 2: %lf\n", calc);
+    after_process_size = points2.n;
+    printf(" === Number of points after process: %d === \n", after_process_size);
 
+    divider();
     // f3
-    printf("\n\nReading points from file 3\n\n");
+    printf("\n  Reading points from file 3...\n");
 
     clock_gettime(CLOCK_MONOTONIC, &start);
     points3 = read_points(f3);
@@ -336,15 +335,14 @@ int main(int argc, char *argv[])
     calc = time_between_timestamp(start, end);
     printf("Time to read points of file 3: %lf\n", calc);
 
-    initial_size = points3.n;
-    printf("Initial size: %d\n", initial_size);
     clock_gettime(CLOCK_MONOTONIC, &start);
     decrease_points(&points3);
     clock_gettime(CLOCK_MONOTONIC, &end);
     calc = time_between_timestamp(start, end);
+    printf("\nTime to process points of file 3: %lf\n", calc);
     after_process_size = points3.n;
-    printf("After process size: %d\n", after_process_size);
-    printf("Time to process points of file 3: %lf\n", calc);
+    printf(" === Number of points after process: %d === \n", after_process_size);
 
+    divider();
     return 0;
 }
