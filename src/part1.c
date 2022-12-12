@@ -16,6 +16,11 @@
 #define TOO_FAR_X 30.0
 #define TOO_FAR_Y 10.0
 
+void divider()
+{
+    printf("\n========================================\n");
+}
+
 // Store LiDAR points in a struct
 typedef struct
 {          // coordinates of a point c -> x[c], y[c], z[c]
@@ -132,7 +137,8 @@ point_struct read_points(char *filename) // recieve a file name and return a str
     stdZ = sqrt(stdZ);
 
     // print the results
-    // printf("Number of points: %d\n", points->n);
+    printf("Results:\n");
+    printf("Number of points: %d\n", points->n);
     printf("Max X: %lf, Min X: %lf, Std X: %lf, Mean X: %lf\n", maxX, minX, stdX, meanX);
     printf("Max Y: %lf, Min Y: %lf, Std Y: %lf, Mean Y: %lf\n", maxY, minY, stdY, meanY);
     printf("Max Z: %lf, Min Z: %lf, Std Z: %lf, Mean Z: %lf\n", maxZ, minZ, stdZ, meanZ);
@@ -146,7 +152,7 @@ point_struct read_points(char *filename) // recieve a file name and return a str
 void decrease_points(point_struct *points) // pre-processing the points
 {
     int nr = points->n;
-    printf("Number of points: %d\n", nr);
+    // printf("Number of points: %d\n", nr);
     int i = 0;
 
     while (i < nr)
@@ -285,27 +291,26 @@ int main(int argc, char *argv[])
     int initial_size, after_process_size;
 
     // f1
-    printf("Reading points from file 1\n");
+    divider();
+    printf("\n === Reading points from file 1 === \n");
 
     clock_gettime(CLOCK_MONOTONIC, &start);
     points1 = read_points(f1);
     clock_gettime(CLOCK_MONOTONIC, &end);
     calc = time_between_timestamp(start, end);
-    printf("Time to read points of file 1: %lf\n", calc);
+    printf("Time to read points of file 1: %lf\n\n", calc);
 
-    initial_size = points1.n;
-    printf("Initial size: %d\n", initial_size);
     clock_gettime(CLOCK_MONOTONIC, &start);
     decrease_points(&points1);
     clock_gettime(CLOCK_MONOTONIC, &end);
     calc = time_between_timestamp(start, end);
-    printf("Time to process points of file 1: %lf\n", calc);
-
+    printf("\nTime to process points of file 1: %lf\n", calc);
     after_process_size = points1.n;
-    printf("After process size: %d\n", after_process_size);
+    printf(" === Number of points after process: %d === \n", after_process_size);
 
+    divider();
     // f2
-    printf("\n\nReading points from file 2\n\n");
+    printf("\nReading points from file 2\n");
     clock_gettime(CLOCK_MONOTONIC, &start);
     points2 = read_points(f2);
     clock_gettime(CLOCK_MONOTONIC, &end);
@@ -318,7 +323,7 @@ int main(int argc, char *argv[])
     decrease_points(&points2);
     clock_gettime(CLOCK_MONOTONIC, &end);
     after_process_size = points2.n;
-    printf("After process size: %d\n", after_process_size);
+    printf("After processing size: %d\n", after_process_size);
     calc = time_between_timestamp(start, end);
     printf("Time to process points of file 2: %lf\n", calc);
 
