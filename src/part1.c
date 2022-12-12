@@ -45,7 +45,6 @@ point_struct read_points(char *filename) // recieve a file name and return a str
 
     double meanX, meanY, meanZ;
 
-    double *x, *y, *z;
     point_struct *points;
 
     points = malloc(sizeof(point_struct)); // allocate memory for the struct
@@ -213,7 +212,6 @@ void road_detection(point_struct *points)
 
     double gridX = 30.0;
     double gridY = 20.0;
-    double baseX, baseY;
     double offset = 0.2;
 
     int counter = -1;
@@ -250,14 +248,7 @@ void road_detection(point_struct *points)
 
             if ((maxZ - minZ < 0.5) || (maxZ > 1.5)) // check z now
             {
-                aux = counter;
-                for (int i = 0; i < numberOfDeletes; i++)
-                {
-                    points->x[delete[i]] = points->x[points->n - 1];
-                    points->y[delete[i]] = points->y[points->n - 1];
-                    points->z[delete[i]] = points->z[points->n - 1];
-                    points->n--;
-                }
+                aux = numberOfDeletes;
             }
             else
             {
@@ -272,6 +263,13 @@ void road_detection(point_struct *points)
         }
         xx += offset;
         yy = 4.0;
+    }
+    for (int i = 0; i < numberOfDeletes; i++)
+    {
+        points->x[delete[i]] = points->x[delete[i] + 1];
+        points->y[delete[i]] = points->y[delete[i] + 1];
+        points->z[delete[i]] = points->z[delete[i] + 1];
+        points->n--;
     }
 }
 
