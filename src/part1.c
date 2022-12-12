@@ -279,8 +279,15 @@ void road_detection(point_struct *points)
     }
 }
 
+// ================================== MAIN ==================================
+
 int main(int argc, char *argv[])
 {
+    // Store results
+    FILE *outfile1;
+    // FILE *outfile2;
+    // FILE *outfile3;
+
     char f1[] = "point_cloud1.txt";
     char f2[] = "point_cloud2.txt";
     char f3[] = "point_cloud3.txt";
@@ -288,7 +295,7 @@ int main(int argc, char *argv[])
 
     point_struct points1, points2, points3;
     struct timespec start, end;
-    int after_process_size;
+    int after_process_size1, after_process_size2, after_process_size3;
 
     // f1
     divider();
@@ -305,8 +312,8 @@ int main(int argc, char *argv[])
     clock_gettime(CLOCK_MONOTONIC, &end);
     calc = time_between_timestamp(start, end);
     printf("\nTime to process points of file 1: %lf\n", calc);
-    after_process_size = points1.n;
-    printf(" === Number of points after process: %d === \n", after_process_size);
+    after_process_size1 = points1.n;
+    printf(" === Number of points after process: %d === \n", after_process_size1);
 
     divider();
     // f2
@@ -322,8 +329,8 @@ int main(int argc, char *argv[])
     clock_gettime(CLOCK_MONOTONIC, &end);
     calc = time_between_timestamp(start, end);
     printf("\nTime to process points of file 2: %lf\n", calc);
-    after_process_size = points2.n;
-    printf(" === Number of points after process: %d === \n", after_process_size);
+    after_process_size2 = points2.n;
+    printf(" === Number of points after process: %d === \n", after_process_size2);
 
     divider();
     // f3
@@ -340,9 +347,46 @@ int main(int argc, char *argv[])
     clock_gettime(CLOCK_MONOTONIC, &end);
     calc = time_between_timestamp(start, end);
     printf("\nTime to process points of file 3: %lf\n", calc);
-    after_process_size = points3.n;
-    printf(" === Number of points after process: %d === \n", after_process_size);
+    after_process_size3 = points3.n;
+    printf(" === Number of points after process: %d === \n", after_process_size3);
 
     divider();
+
+    // open file for writing
+    outfile1 = fopen("results1.txt", "w");
+
+    if (outfile1 == NULL)
+    {
+        fprintf(stderr, "\nError openening file\n");
+        exit(1);
+    }
+
+    // write struct to file
+
+    if (fwrite(&points1, sizeof(point_struct) * after_process_size1, 1, outfile1) != 0)
+        printf("\nContents to file written successfully.\n");
+    else
+    {
+        printf("\nError writing in file!\n");
+    }
+
+    // close file
+    fclose(outfile1);
+
+    // free memory
+    /*
+    free(points1.x);
+    free(points1.y);
+    free(points1.z);
+
+    free(points2.x);
+    free(points2.y);
+    free(points2.z);
+
+    free(points3.x);
+    free(points3.y);
+    free(points3.z);
+    */
+
     return 0;
 }
