@@ -11,9 +11,10 @@
 #include <time.h> //clock_gettime
 #include "timestamps.h"
 
+// valores do enunciado
 #define MIN_VALUE 10.0
-#define TOO_FAR_X 20.0
-#define TOO_FAR_Y 20.0
+#define TOO_FAR_X 30.0
+#define TOO_FAR_Y 10.0
 
 // Store LiDAR points in a struct
 typedef struct
