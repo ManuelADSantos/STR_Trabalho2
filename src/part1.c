@@ -167,7 +167,7 @@ void decrease_points(point_struct *points) // pre-processing the points
             }
             i++;
         }
-        else if (points->x[i] <= 2.0 && (i > 0)) // remove points that are behind the car
+        else if (points->x[i] <= 2.0 && (i > 0))
         {
             if (i < (nr - 1))
             {
@@ -189,6 +189,13 @@ void decrease_points(point_struct *points) // pre-processing the points
     }
 }
 
+/*
+ * Car dimensions: 4 x 2
+ * Remove points that are too close to the car
+ * Grid: 30x20
+ * hight: 1.5 <----
+ * flat ground: Zmax - Zmin < 0.5 < -----
+ */
 void road_detection(point_struct *points)
 {
     double minZ = INT_MIN;
@@ -197,10 +204,74 @@ void road_detection(point_struct *points)
     int size = points->n;
     int search[size];
     int delete[size];
+    int numberOfDeletes, aux = 0;
+
+    double xx, yy;
+
+    xx = 2.0;
+    yy = 4.0;
+
+    double gridX = 30.0;
+    double gridY = 20.0;
+    double baseX, baseY;
+    double offset = 0.2;
+
+    int counter = -1;
 
     for (int i = 0; i < size; i++)
     {
         search[i] = i; // initialize the search array with the indexes
+    }
+
+    while (xx < gridX)
+    {
+        while (yy < gridY)
+        {
+            for (int i = 0; i < size; i++)
+            {
+                if ((points->x[search[i]] >= xx) && (points->x[search[i]] <= (xx + offset)) && (points->y[search[i]] >= yy) && (points->y[search[i]] <= (yy + offset)))
+                {
+                    if (points->z[search[i]] < minZ)
+                    {
+                        minZ = points->z[search[i]];
+                    }
+                    if (points->z[search[i]] > maxZ)
+                    {
+                        maxZ = points->z[search[i]];
+                    }
+
+                    counter++; // on the first iteration, it will go to 0
+                    search[i] = search[counter];
+
+                    delete[numberOfDeletes] = search[i];
+                    numberOfDeletes++;
+                }
+            }
+
+            if ((maxZ - minZ < 0.5) || (maxZ > 1.5)) // check z now
+            {
+                aux = counter;
+                for (int i = 0; i < numberOfDeletes; i++)
+                {
+                    points->x[delete[i]] = points->x[points->n - 1];
+                    points->y[delete[i]] = points->y[points->n - 1];
+                    points->z[delete[i]] = points->z[points->n - 1];
+                    points->n--;
+                }
+            }
+            else
+            {
+                numberOfDeletes = aux; // remove the current grid from deletes
+            }
+
+            // reset min and max
+            minZ = INT_MIN;
+            maxZ = INT_MAX;
+
+            yy += offset;
+        }
+        xx += offset;
+        yy = 4.0;
     }
 }
 
