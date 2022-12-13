@@ -363,7 +363,7 @@ int main(int argc, char *argv[])
 
     // write struct to file
 
-    if (fwrite(&points1, sizeof(point_struct) * after_process_size1, 1, outfile1) != 0)
+    if (fwrite(&points1, sizeof(point_struct), after_process_size1, outfile1) != 0)
         printf("\nContents to file written successfully.\n");
     else
     {
@@ -374,19 +374,10 @@ int main(int argc, char *argv[])
     fclose(outfile1);
 
     // free memory
-    /*
-    free(points1.x);
-    free(points1.y);
-    free(points1.z);
 
-    free(points2.x);
-    free(points2.y);
-    free(points2.z);
-
-    free(points3.x);
-    free(points3.y);
-    free(points3.z);
-    */
+    // free(points1);
+    // free(points2);
+    // free(points3);
 
     return 0;
 }
