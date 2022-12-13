@@ -321,27 +321,37 @@ int main(int argc, char *argv[])
     struct timespec start, end;
     int after_process_size1, after_process_size2, after_process_size3;
 
-    // f1
+    // ================== FILE 1 ==================
     divider();
     printf("\n  Reading points from file 1 ... \n");
 
+    // FUNCTION 1
     clock_gettime(CLOCK_MONOTONIC, &start);
     points1 = read_points(f1);
     clock_gettime(CLOCK_MONOTONIC, &end);
     calc = time_between_timestamp(start, end);
-    printf("Time to read points of file 1: %lf\n\n", calc);
+    printf("F1: Time to read points of file 1: %lf\n\n", calc);
 
+    // FUNCTION 2
     clock_gettime(CLOCK_MONOTONIC, &start);
     decrease_points(&points1);
     clock_gettime(CLOCK_MONOTONIC, &end);
     calc = time_between_timestamp(start, end);
-    printf("\nTime to process points of file 1: %lf\n", calc);
+    printf("\nF2: Time to process points of file 1: %lf\n", calc);
+
+    // FUNCTION 3
+    clock_gettime(CLOCK_MONOTONIC, &start);
     road_detection(&points1);
+    clock_gettime(CLOCK_MONOTONIC, &end);
+    calc = time_between_timestamp(start, end);
+    printf("\nF3: Time to process points of file 1: %lf\n", calc);
     after_process_size1 = points1.n;
     printf(" === Number of points after process: %d === \n", after_process_size1);
 
     divider();
-    // f2
+
+    // ================== FILE 2 ==================
+    // FUNCTION 1
     printf("\n  Reading points from file 2 ... \n");
     clock_gettime(CLOCK_MONOTONIC, &start);
     points2 = read_points(f2);
@@ -349,32 +359,48 @@ int main(int argc, char *argv[])
     calc = time_between_timestamp(start, end);
     printf("Time to read points of file 2: %lf\n", calc);
 
+    // FUNCTION 2
     clock_gettime(CLOCK_MONOTONIC, &start);
     decrease_points(&points2);
     clock_gettime(CLOCK_MONOTONIC, &end);
     calc = time_between_timestamp(start, end);
     printf("\nTime to process points of file 2: %lf\n", calc);
+
+    // FUNCTION 3
+    clock_gettime(CLOCK_MONOTONIC, &start);
     road_detection(&points2);
+    clock_gettime(CLOCK_MONOTONIC, &end);
+    calc = time_between_timestamp(start, end);
+    printf("\nF3: Time to process points of file 2: %lf\n", calc);
     after_process_size2 = points2.n;
     printf(" === Number of points after process: %d === \n", after_process_size2);
 
     divider();
 
-    // f3
+    // ============ FILE 3 ============
     printf("\n  Reading points from file 3...\n");
 
+    // FUNCTION 1
     clock_gettime(CLOCK_MONOTONIC, &start);
     points3 = read_points(f3);
     clock_gettime(CLOCK_MONOTONIC, &end);
     calc = time_between_timestamp(start, end);
     printf("Time to read points of file 3: %lf\n", calc);
 
+    // FUNCTION 2
     clock_gettime(CLOCK_MONOTONIC, &start);
     decrease_points(&points3);
+    road_detection(&points3);
     clock_gettime(CLOCK_MONOTONIC, &end);
     calc = time_between_timestamp(start, end);
     printf("\nTime to process points of file 3: %lf\n", calc);
+
+    // FUNCTION 3
+    clock_gettime(CLOCK_MONOTONIC, &start);
     road_detection(&points3);
+    clock_gettime(CLOCK_MONOTONIC, &end);
+    calc = time_between_timestamp(start, end);
+    printf("\nF3: Time to process points of file 3: %lf\n", calc);
     after_process_size3 = points3.n;
     printf(" === Number of points after process: %d === \n", after_process_size3);
 
