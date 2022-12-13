@@ -52,7 +52,7 @@ point_struct read_points(char *filename) // recieve a file name and return a str
 
     point_struct *points;
 
-    points = malloc(sizeof(point_struct)); // allocate memory for the struct
+    points = (point_struct *)malloc(sizeof(point_struct)); // allocate memory for the struct
     points->n = 0;
 
     // Open file
