@@ -217,7 +217,7 @@ void road_detection(point_struct *points)
     yy = 4.0;
 
     double gridX = 30.0;
-    double gridY = 20.0;
+    double gridY = 10.0;
     double offset = 0.2;
 
     int counter = -1;
@@ -252,7 +252,7 @@ void road_detection(point_struct *points)
                 }
             }
 
-            if ((maxZ - minZ < 0.5) || (maxZ > 1.5)) // check z now
+            if ((abs(maxZ - minZ) < 0.5) || abs(maxZ) > 1.5) // check z now
             {
                 aux = numberOfDeletes;
             }
@@ -268,7 +268,7 @@ void road_detection(point_struct *points)
             yy += offset;
         }
         xx += offset;
-        yy = 4.0;
+        yy = -10.0;
     }
     for (int i = 0; i < numberOfDeletes; i++)
     {
