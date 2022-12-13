@@ -10,6 +10,7 @@
 #include <math.h>
 #include <time.h> //clock_gettime
 #include "timestamps.h"
+#include <string.h>
 
 // valores do enunciado
 #define MIN_VALUE 10.0
@@ -30,7 +31,6 @@ typedef struct
     double *z;
 } point_struct;
 
-// ==== EXERCISE 1.) ====
 // Read LiDAR points from a file
 point_struct read_points(char *filename) // recieve a file name and return a struct with the points
 {
@@ -147,7 +147,7 @@ point_struct read_points(char *filename) // recieve a file name and return a str
 
     return *points;
 }
-// ==== EXERCISE 2.a) ====
+
 // remove points that are too far away or behind the car
 void decrease_points(point_struct *points) // pre-processing the points
 {
@@ -279,15 +279,39 @@ void road_detection(point_struct *points)
     }
 }
 
+// ==== Save results to file ====
+void saveToFile(char *filename, point_struct points, int size)
+{ // open file for writing results
+    FILE *outfile;
+    char line[50];
+
+    outfile = fopen(filename, "w");
+
+    if (outfile == NULL)
+    {
+        fprintf(stderr, "\nError openening file\n");
+        exit(1);
+    }
+
+    for (int i = 0; i < size; i++)
+    {
+        sprintf(line, "%lf %lf %lf\n", points.x[i], points.y[i], points.z[i]);
+        fputs(line, outfile);
+        if (ferror(outfile))
+        {
+            printf("Error writing in file!\n");
+            exit(1);
+        }
+    }
+    memset(line, 0, sizeof(line));
+
+    fclose(outfile);
+}
+
 // ================================== MAIN ==================================
 
 int main(int argc, char *argv[])
 {
-    // Store results
-    FILE *outfile1;
-    // FILE *outfile2;
-    // FILE *outfile3;
-
     char f1[] = "point_cloud1.txt";
     char f2[] = "point_cloud2.txt";
     char f3[] = "point_cloud3.txt";
@@ -312,6 +336,7 @@ int main(int argc, char *argv[])
     clock_gettime(CLOCK_MONOTONIC, &end);
     calc = time_between_timestamp(start, end);
     printf("\nTime to process points of file 1: %lf\n", calc);
+    road_detection(&points1);
     after_process_size1 = points1.n;
     printf(" === Number of points after process: %d === \n", after_process_size1);
 
@@ -329,10 +354,12 @@ int main(int argc, char *argv[])
     clock_gettime(CLOCK_MONOTONIC, &end);
     calc = time_between_timestamp(start, end);
     printf("\nTime to process points of file 2: %lf\n", calc);
+    road_detection(&points2);
     after_process_size2 = points2.n;
     printf(" === Number of points after process: %d === \n", after_process_size2);
 
     divider();
+
     // f3
     printf("\n  Reading points from file 3...\n");
 
@@ -347,34 +374,26 @@ int main(int argc, char *argv[])
     clock_gettime(CLOCK_MONOTONIC, &end);
     calc = time_between_timestamp(start, end);
     printf("\nTime to process points of file 3: %lf\n", calc);
+    road_detection(&points3);
     after_process_size3 = points3.n;
     printf(" === Number of points after process: %d === \n", after_process_size3);
 
     divider();
 
-    // open file for writing
-    outfile1 = fopen("results1.txt", "w");
+    char outf1[] = "results1.txt";
+    char outf2[] = "results2.txt";
+    char outf3[] = "results3.txt";
 
-    if (outfile1 == NULL)
-    {
-        fprintf(stderr, "\nError openening file\n");
-        exit(1);
-    }
+    saveToFile(outf1, points1, after_process_size1);
+    printf("Results of file 1 saved\n");
+    saveToFile(outf2, points2, after_process_size2);
+    printf("Results of file 2 saved\n");
+    saveToFile(outf3, points3, after_process_size3);
+    printf("Results of file 3 saved\n");
 
-    // write struct to file
-
-    if (fwrite(&points1, sizeof(point_struct), after_process_size1, outfile1) != 0)
-        printf("\nContents to file written successfully.\n");
-    else
-    {
-        printf("\nError writing in file!\n");
-    }
-
-    // close file
-    fclose(outfile1);
+    divider();
 
     // free memory
-
     // free(points1);
     // free(points2);
     // free(points3);
