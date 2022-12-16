@@ -22,23 +22,23 @@ void divider()
     printf("\n========================================\n");
 }
 
-typedef struct
+struct node
 {
     double x;
     double y;
     double z;
     struct node *next;
-} node;
+};
 
 // Store LiDAR points in a struct
-typedef struct
+struct point_struct
 {          // coordinates of a point c -> x[c], y[c], z[c]
     int n; // number of points
     struct node *head;
-} point_struct;
+};
 
 // Read LiDAR points from a file
-point_struct read_points(char *filename) // recieve a file name and return a struct with the points
+struct point_struct read_points(char *filename) // recieve a file name and return a struct with the points
 {
     size_t line = 0;
     char *buffer = NULL;
@@ -56,9 +56,9 @@ point_struct read_points(char *filename) // recieve a file name and return a str
 
     double meanX, meanY, meanZ;
 
-    point_struct *points;
+    struct point_struct *points;
 
-    points = (point_struct *)malloc(sizeof(point_struct)); // allocate memory for the struct
+    points = (struct point_struct *)malloc(sizeof(struct point_struct)); // allocate memory for the struct
     points->n = 0;
 
     // Open file
@@ -83,11 +83,11 @@ point_struct read_points(char *filename) // recieve a file name and return a str
     // points->y = (double *)malloc(points->n * sizeof(double));
     // points->z = (double *)malloc(points->n * sizeof(double));
 
-    node *now_pt, *prev_pt;
+    struct node *now_pt, *prev_pt;
 
     for (int i = 0; i < points->n; i++)
     {
-        node *pt = (node *)malloc(sizeof(node)); // allocate memory for the struct
+        struct node *pt = (struct node *)malloc(sizeof(struct node)); // allocate memory for the struct
 
         if (i == 0)
             points->head = pt;
@@ -168,7 +168,7 @@ point_struct read_points(char *filename) // recieve a file name and return a str
 }
 
 // remove points that are too far away or behind the car
-void decrease_points(point_struct *points) // pre-processing the points
+void decrease_points(struct point_struct *points) // pre-processing the points
 {
     int nr = points->n;
     // printf("Number of points: %d\n", nr);
@@ -220,7 +220,7 @@ void decrease_points(point_struct *points) // pre-processing the points
  * hight: 1.5 <----
  * flat ground: Zmax - Zmin < 0.5 < -----
  */
-void road_detection(point_struct *points)
+void road_detection(struct point_struct *points)
 {
     double minZ = INT_MIN;
     double maxZ = INT_MAX;
@@ -299,7 +299,7 @@ void road_detection(point_struct *points)
 }
 
 // ==== Save results to file ====
-void saveToFile(char *filename, point_struct points, int size)
+void saveToFile(char *filename, struct point_struct points, int size)
 { // open file for writing results
     FILE *outfile;
     char line[50];
@@ -336,9 +336,9 @@ int main(int argc, char *argv[])
     char f3[] = "point_cloud3.txt";
     double calc = 0.0;
 
-    point_struct points1, points2, points3;
+    struct point_struct points1, points2, points3;
     struct timespec start, end;
-    int after_process_size1, after_process_size2, after_process_size3;
+    int after_process_size1 = 0, after_process_size2 = 0, after_process_size3 = 0;
 
     // ================== FILE 1 ==================
     divider();
@@ -439,9 +439,9 @@ int main(int argc, char *argv[])
     divider();
 
     // free memory
-    // free(points1);
-    // free(points2);
-    // free(points3);
+    free(points1);
+    free(points2);
+    free(points3);
 
     return 0;
 }
