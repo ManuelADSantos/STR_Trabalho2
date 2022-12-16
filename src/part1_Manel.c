@@ -24,7 +24,9 @@ void divider()
 
 typedef struct
 {
-    double coord;
+    double x;
+    double y;
+    double z;
     struct node *next;
 } node;
 
@@ -32,9 +34,7 @@ typedef struct
 typedef struct
 {          // coordinates of a point c -> x[c], y[c], z[c]
     int n; // number of points
-    struct node *x;
-    struct node *y;
-    struct node *z;
+    struct node *head;
 } point_struct;
 
 // Read LiDAR points from a file
@@ -78,15 +78,16 @@ point_struct read_points(char *filename) // recieve a file name and return a str
     buffer = NULL;
     fseek(fp, SEEK_SET, 0); // rewind file pointer to the beginning of the file
 
-    // allocate memory for the points
-    points->x = (double *)malloc(points->n * sizeof(double));
-    points->y = (double *)malloc(points->n * sizeof(double));
-    points->z = (double *)malloc(points->n * sizeof(double));
+    // // allocate memory for the points
+    // points->x = (double *)malloc(points->n * sizeof(double));
+    // points->y = (double *)malloc(points->n * sizeof(double));
+    // points->z = (double *)malloc(points->n * sizeof(double));
 
     for (int i = 0; i < points->n; i++)
     {
 
         fscanf(fp, "%lf %lf %lf", &points->x[i], &points->y[i], &points->z[i]);
+
         // check if the point is valid
         if (points->x[i] > maxX) // x
         {
