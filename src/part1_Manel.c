@@ -166,14 +166,15 @@ struct point_struct read_points(char *filename) // recieve a file name and retur
 void decrease_points(struct point_struct *points) // pre-processing the points
 {
     int nr = points->n;
-    // printf("Number of points: %d\n", nr);
+
     int i = 0;
-    struct node *now_pt = points->head, *prev_pt;
+    struct node *now_pt = points->head;
+    struct node *prev_pt;
 
     while (i < nr)
     {
         // remove points that are too far away
-        if (now_pt->x < 0.0 || (now_pt->x <= 2.0 && abs(now_pt->y <= 1.0)) || now_pt->x > TOO_FAR_X || abs(now_pt->y) > TOO_FAR_Y)
+        if ((now_pt->x < 0.0) || ((now_pt->x <= 2.0) && (abs(now_pt->y <= 1.0))) || (now_pt->x > TOO_FAR_X) || (abs(now_pt->y) > TOO_FAR_Y))
         {
             if (i == 0)
             {
@@ -303,7 +304,14 @@ void saveToFile(char *filename, struct point_struct points, int size)
             printf("Error writing in file!\n");
             exit(1);
         }
-        pt = pt->next;
+        if (pt->next == NULL)
+        {
+            break;
+        }
+        else
+        {
+            pt = pt->next;
+        }
     }
     memset(line, 0, sizeof(line));
 

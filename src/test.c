@@ -185,5 +185,14 @@ int main(int argc, char *argv[])
     printf("Number of points: %d\n", n);
     printf("%lf\n", points1.head->x);
     printf("2: %lf\n", points1.head->next->x);
+
+    printf("atribuicao:\n\n");
+
+    struct node first;
+    struct node second;
+
+    first = *points1.head;
+    printf("first: %lf\n", first.x);
+
     return 0;
 }
