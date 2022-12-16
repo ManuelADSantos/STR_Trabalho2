@@ -338,6 +338,7 @@ int main(int argc, char *argv[])
     clock_gettime(CLOCK_MONOTONIC, &end);
     calc = time_between_timestamp(start, end);
     printf("\nF2: Time to process points of file 1: %lf ms\n", calc);
+    printf("\n === Number of points after pre-process: %d === \n", points1.n);
 
     // FUNCTION 3
     clock_gettime(CLOCK_MONOTONIC, &start);
