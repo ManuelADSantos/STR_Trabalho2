@@ -85,6 +85,7 @@ point_struct read_points(char *filename) // recieve a file name and return a str
 
     for (int i = 0; i < points->n; i++)
     {
+
         fscanf(fp, "%lf %lf %lf", &points->x[i], &points->y[i], &points->z[i]);
         // check if the point is valid
         if (points->x[i] > maxX) // x
