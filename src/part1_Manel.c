@@ -280,7 +280,7 @@ void saveToFile(char *filename, struct point_struct points, int size)
 { // open file for writing results
     FILE *outfile;
     char line[50];
-    struct node *pt;
+    struct node *pt = points.head;
 
     outfile = fopen(filename, "w");
 
@@ -289,8 +289,6 @@ void saveToFile(char *filename, struct point_struct points, int size)
         fprintf(stderr, "\nError openening file\n");
         exit(1);
     }
-
-    pt = points.head;
 
     for (int i = 0; i < size; i++)
     {
@@ -340,12 +338,12 @@ int main(int argc, char *argv[])
     after_process_size1 = points1.n;
     printf("\n === Number of points after pre-process: %d === \n", after_process_size1);
 
-    struct node *temp = points1.head;
-    for (int i = 0; i < after_process_size1; i++)
-    {
-        printf("i = %d || x: %lf || y: %lf || z: %lf\n", i, temp->x, temp->y, temp->z);
-        temp = temp->next;
-    }
+    // struct node *temp = points1.head;
+    // for (int i = 0; i < after_process_size1; i++)
+    // {
+    //     printf("i = %d || x: %lf || y: %lf || z: %lf\n", i, temp->x, temp->y, temp->z);
+    //     temp = temp->next;
+    // }
 
     // // FUNCTION 3
     // clock_gettime(CLOCK_MONOTONIC, &start);
