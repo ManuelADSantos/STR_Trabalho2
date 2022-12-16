@@ -176,9 +176,13 @@ void decrease_points(struct point_struct *points) // pre-processing the points
         if (now_pt->x < 0.0 || (now_pt->x <= 2.0 && abs(now_pt->y <= 1.0)) || now_pt->x > TOO_FAR_X || abs(now_pt->y) > TOO_FAR_Y)
         {
             if (i == 0)
+            {
                 points->head = now_pt->next;
+            }
             else
+            {
                 prev_pt->next = now_pt->next;
+            }
 
             free(now_pt);
             points->n--;
