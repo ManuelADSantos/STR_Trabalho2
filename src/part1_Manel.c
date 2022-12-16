@@ -83,44 +83,48 @@ point_struct read_points(char *filename) // recieve a file name and return a str
     // points->y = (double *)malloc(points->n * sizeof(double));
     // points->z = (double *)malloc(points->n * sizeof(double));
 
+    node *now_pt, *prev_pt;
+
     for (int i = 0; i < points->n; i++)
     {
+        node *pt = (node *)malloc(sizeof(node)); // allocate memory for the struct
 
-        fscanf(fp, "%lf %lf %lf", &points->x[i], &points->y[i], &points->z[i]);
+        if (i == 0)
+            points->head = pt;
+        else
+            prev_pt->next = pt;
+
+        fscanf(fp, "%lf %lf %lf", &pt->x, &pt->y, &pt->z);
 
         // check if the point is valid
-        if (points->x[i] > maxX) // x
-        {
-            maxX = points->x[i];
-        }
-        if (points->x[i] < minX)
-        {
-            minX = points->x[i];
-        }
-        if (points->y[i] > maxY) // y
-        {
-            maxY = points->y[i];
-        }
-        if (points->y[i] < minY)
-        {
-            minY = points->y[i];
-        }
-        if (points->z[i] > maxZ) // z
-        {
-            maxZ = points->z[i];
-        }
-        if (points->z[i] < minZ)
-        {
-            minZ = points->z[i];
-        }
+        if (pt->x > maxX) // x
+            maxX = pt->x;
+
+        if (pt->x < minX)
+            minX = pt->x;
+
+        if (pt->y > maxY) // y
+            maxY = pt->y;
+
+        if (pt->y < minY)
+            minY = pt->y;
+
+        if (pt->z > maxZ) // z
+            maxZ = pt->z;
+
+        if (pt->z < minZ)
+            minZ = pt->z;
+
         // sum up the points
-        sumX += points->x[i];
-        sumY += points->y[i];
-        sumZ += points->z[i];
+        sumX += pt->x;
+        sumY += pt->y;
+        sumZ += pt->z;
 
         meanX = sumX / points->n;
         meanY = sumY / points->n;
         meanZ = sumZ / points->n;
+
+        prev_pt = pt;
     }
     // calculate standard deviation
     /*
@@ -128,11 +132,18 @@ point_struct read_points(char *filename) // recieve a file name and return a str
      *  where μ is the mean of the data set, and N is the number of data points.
      */
 
+    now_pt = points->head;
+
     for (int i = 0; i < points->n; i++) // ∑(Xi−μ)^2
     {
-        stdX += pow(points->x[i] - meanX, 2);
-        stdY += pow(points->y[i] - meanY, 2);
-        stdZ += pow(points->z[i] - meanZ, 2);
+        if (now_pt->next == NULL)
+            break;
+
+        stdX += pow(now_pt->x - meanX, 2);
+        stdY += pow(now_pt->y - meanY, 2);
+        stdZ += pow(now_pt->z - meanZ, 2);
+
+        now_pt = now_pt->next;
     }
     // divide by N-1
     stdX = stdX / ((points->n) - 1);
