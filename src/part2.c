@@ -396,9 +396,9 @@ void *thread_read(void *arguments)
     sleep = sub_timestamp(end, target);
 
     printf("         point_cloud1      point_cloud2      point_cloud3   \n");
-    printf("BEGIN     %lf               %lf               %lf           \n)", return_milli(regists[0]), return_milli(regists[1]), return_milli(regists[2]));
-    printf("TARGET    %lf               %lf               %lf           \n)", return_milli(regists[3]), return_milli(regists[4]), return_milli(regists[5]));
-    printf("END       %lf               %lf               %lf           \n)", return_milli(regists[6]), return_milli(regists[7]), return_milli(regists[8]));
+    printf("BEGIN     %lf               %lf               %lf           \n", return_milli(regists[0]), return_milli(regists[1]), return_milli(regists[2]));
+    printf("TARGET    %lf               %lf               %lf           \n", return_milli(regists[3]), return_milli(regists[4]), return_milli(regists[5]));
+    printf("END       %lf               %lf               %lf           \n", return_milli(regists[6]), return_milli(regists[7]), return_milli(regists[8]));
 
     return NULL;
 }
