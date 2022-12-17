@@ -185,7 +185,7 @@ void decrease_points(struct point_struct *points) // pre-processing the points
                 prev_pt->next = now_pt->next;
             }
 
-            free(now_pt);
+            // free(now_pt);
             points->n--;
         }
 
@@ -202,83 +202,91 @@ void decrease_points(struct point_struct *points) // pre-processing the points
 //  * hight: 1.5 <----
 //  * flat ground: Zmax - Zmin < 0.5 < -----
 //  */
-// void road_detection(struct point_struct *points)
-// {
-//     double minZ = INT_MIN;
-//     double maxZ = INT_MAX;
+void road_detection(struct point_struct *points)
+{
 
-//     int size = points->n;
-//     int search[size];
-//     int delete[size];
-//     int numberOfDeletes, aux = 0;
+    /*
+    x = cellsize * ( i - (colums/2) ) + startX
+    y = cellsize * ( j - (rows/2) ) + startY
 
-//     double xx, yy;
+    i = floor ((( x - startX + (cellsize/2)) / cellsize ) + (cols/2))
+    J = floor ((( y - startY + (cellsize/2)) / cellsize ) + (rows/2))
 
-//     xx = 2.0;
-//     yy = 4.0;
+    */
 
-//     double gridX = 30.0;
-//     double gridY = 10.0;
-//     double offset = 0.2;
+    double minZ = INT_MIN;
+    double maxZ = INT_MAX;
 
-//     int counter = -1;
+    struct node *now_pt = points->head;
+    struct node *prev_pt;
 
-//     for (int i = 0; i < size; i++)
-//     {
-//         search[i] = i; // initialize the search array with the indexes
-//     }
+    int size = points->n;
 
-//     while (xx < gridX)
-//     {
-//         while (yy < gridY)
-//         {
-//             for (int i = 0; i < size; i++)
-//             {
-//                 if ((points->x[search[i]] >= xx) && (points->x[search[i]] <= (xx + offset)) && (points->y[search[i]] >= yy) && (points->y[search[i]] <= (yy + offset)))
-//                 {
-//                     if (points->z[search[i]] < minZ)
-//                     {
-//                         minZ = points->z[search[i]];
-//                     }
-//                     if (points->z[search[i]] > maxZ)
-//                     {
-//                         maxZ = points->z[search[i]];
-//                     }
+    double xx, yy;
 
-//                     counter++; // on the first iteration, it will go to 0
-//                     search[i] = search[counter];
+    xx = 2.0;
+    yy = 4.0;
 
-//                     delete[numberOfDeletes] = search[i];
-//                     numberOfDeletes++;
-//                 }
-//             }
+    double gridX = 30.0;
+    double gridY = 10.0;
+    double offset = 0.2;
 
-//             if ((abs(maxZ - minZ) < 0.5) || abs(maxZ) > 1.5) // check z now
-//             {
-//                 aux = numberOfDeletes;
-//             }
-//             else
-//             {
-//                 numberOfDeletes = aux; // remove the current grid from deletes
-//             }
+    while (xx < gridX)
+    {
+        while (yy < gridY)
+        {
+            for (int i = 0; i < size; i++)
+            {
+                if ((now_pt->x >= xx) && (now_pt->x <= (xx + offset)) && (now_pt->y >= yy) && (now_pt->y <= (yy + offset)))
+                {
+                    if (now_pt->z < minZ)
+                    {
+                        minZ = now_pt->z;
+                    }
+                    if (now_pt->z > maxZ)
+                    {
+                        maxZ = now_pt->z;
+                    }
+                }
+                i++;
+                prev_pt = now_pt;
+                now_pt = now_pt->next;
+            }
+            now_pt = points->head; // reset the pointer to the head of the list
+            int j = 0;
+            while (j < size)
+            {
 
-//             // reset min and max
-//             minZ = INT_MIN;
-//             maxZ = INT_MAX;
+                if ((abs(maxZ - minZ) < 0.5) || abs(maxZ) > 1.5) // check z now
+                {
+                    if (j == 0) // first element
+                    {
+                        points->head = now_pt->next;
+                    }
+                    else if (now_pt->next == NULL) // last element
+                    {
+                        prev_pt->next = NULL;
+                    }
+                    else // other elements
+                    {
+                        prev_pt->next = now_pt->next;
+                    }
 
-//             yy += offset;
-//         }
-//         xx += offset;
-//         yy = -10.0;
-//     }
-//     for (int i = 0; i < numberOfDeletes; i++)
-//     {
-//         points->x[delete[i]] = points->x[delete[i] + 1];
-//         points->y[delete[i]] = points->y[delete[i] + 1];
-//         points->z[delete[i]] = points->z[delete[i] + 1];
-//         points->n--;
-//     }
-// }
+                    // free(now_pt);
+                    points->n--;
+                }
+                j++;
+            }
+            // reset min and max
+            minZ = INT_MIN;
+            maxZ = INT_MAX;
+
+            yy += offset;
+        }
+        xx += offset;
+        yy = -10.0;
+    }
+}
 
 // ==== Save results to file ====
 void saveToFile(char *filename, struct point_struct points, int size)
