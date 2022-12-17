@@ -209,6 +209,7 @@ void *thread_preprocess(void *arguments)
     regists[7] = auxTarget;
     regists[8] = auxEnd;
 
+    divider();
     printf("\n\n");
     printf(" ==== Thread 2 ==== \n");
     printf("                 BEGIN                   TARGET                   END     \n");
