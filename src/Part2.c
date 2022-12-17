@@ -45,7 +45,7 @@ void *thread_read(void *arguments)
     // wait until the first file is ready
     if (sleep.tv_nsec > 0)
     {
-        printf("\nWaiting for the first file to be ready...\n");
+        printf("\nT1: Waiting for the first file to be ready...\n");
         clock_nanosleep(CLOCK_MONOTONIC, 0, &sleep, NULL);
     }
 
@@ -74,7 +74,7 @@ void *thread_read(void *arguments)
     // wait until the first file is ready
     if (sleep.tv_nsec > 0)
     {
-        printf("\nWaiting for the second file to be ready...\n");
+        printf("\nT1: Waiting for the second file to be ready...\n");
         clock_nanosleep(CLOCK_MONOTONIC, 0, &sleep, NULL);
     }
 
@@ -102,7 +102,7 @@ void *thread_read(void *arguments)
     divider();
     if (sleep.tv_nsec > 0)
     {
-        printf("\nWaiting for the third file to be ready...\n");
+        printf("\nT1: Waiting for the third file to be ready...\n");
         clock_nanosleep(CLOCK_MONOTONIC, 0, &sleep, NULL);
     }
 
@@ -309,13 +309,12 @@ int main(int argc, char *argv[])
 
     // vamos obter o tempo inicial
     clock_gettime(CLOCK_MONOTONIC, &zeroHour);
-
+    printf("\n\nMAIN: Creating threads... \n");
     // vamos criar todas as threads, uma a uma
-    printf("IN MAIN: Creating thread 1. \n");
+    printf("\nIN MAIN: Creating thread 1. \n");
     threads[0] = 0;
     thread_args[0] = 0;
-    int result = pthread_create(&threads[0], NULL, thread_read, &thread_args[0]);
-    printf("result: %d", result);
+    pthread_create(&threads[0], NULL, thread_read, &thread_args[0]);
 
     printf("IN MAIN: Creating thread 2. \n");
     threads[1] = 1;

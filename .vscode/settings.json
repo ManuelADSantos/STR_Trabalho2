@@ -3,5 +3,6 @@
         "__node_handle": "c",
         "istream": "c",
         "algorithm": "c"
-    }
+    },
+    "ros.distro": "noetic"
 }
