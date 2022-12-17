@@ -9,4 +9,6 @@ double time_between_timestamp(struct timespec begin, struct timespec end);
 
 void print_timestamp(struct timespec timestamp);
 
+double return_milli(struct timespec timestamp);
+
 #endif

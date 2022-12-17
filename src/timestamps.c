@@ -48,3 +48,9 @@ void print_timestamp(struct timespec timestamp)
 {
     printf("sec = %ld || nsec = %ld\n\n", timestamp.tv_sec, timestamp.tv_nsec);
 }
+
+double return_milli(struct timespec timestamp)
+{
+    struct timespec zero = {0.0, 0.0};
+    return time_between_timestamp(zero, timestamp);
+}

@@ -32,7 +32,7 @@ typedef struct
 } point_struct;
 
 // Read LiDAR points from a file
-point_struct read_points(char *filename) // recieve a file name and return a struct with the points
+point_struct *read_points(char *filename) // recieve a file name and return a struct with the points
 {
     size_t line = 0;
     char *buffer = NULL;
@@ -145,7 +145,7 @@ point_struct read_points(char *filename) // recieve a file name and return a str
 
     fclose(fp);
 
-    return *points;
+    return points;
 }
 
 // remove points that are too far away or behind the car
@@ -280,7 +280,7 @@ void road_detection(point_struct *points)
 }
 
 // ==== Save results to file ====
-void saveToFile(char *filename, point_struct points, int size)
+void saveToFile(char *filename, point_struct *points, int size)
 { // open file for writing results
     FILE *outfile;
     char line[50];
@@ -295,7 +295,7 @@ void saveToFile(char *filename, point_struct points, int size)
 
     for (int i = 0; i < size; i++)
     {
-        sprintf(line, "%lf %lf %lf\n", points.x[i], points.y[i], points.z[i]);
+        sprintf(line, "%lf %lf %lf\n", points->x, points->y, points->z);
         fputs(line, outfile);
         if (ferror(outfile))
         {
@@ -317,7 +317,7 @@ int main(int argc, char *argv[])
     char f3[] = "point_cloud3.txt";
     double calc = 0.0;
 
-    point_struct points1, points2, points3;
+    point_struct *points1, *points2, *points3;
     struct timespec start, end;
     int after_process_size1, after_process_size2, after_process_size3;
 
@@ -338,7 +338,7 @@ int main(int argc, char *argv[])
     clock_gettime(CLOCK_MONOTONIC, &end);
     calc = time_between_timestamp(start, end);
     printf("\nF2: Time to process points of file 1: %lf ms\n", calc);
-    printf("\n === Number of points after pre-process: %d === \n", points1.n);
+    printf("\n === Number of points after pre-process: %d === \n", points1->n);
 
     // FUNCTION 3
     clock_gettime(CLOCK_MONOTONIC, &start);
@@ -346,7 +346,7 @@ int main(int argc, char *argv[])
     clock_gettime(CLOCK_MONOTONIC, &end);
     calc = time_between_timestamp(start, end);
     printf("\nF3: Time to process points of file 1: %lf ms\n", calc);
-    after_process_size1 = points1.n;
+    after_process_size1 = points1->n;
     printf("\n === Number of points after process: %d === \n", after_process_size1);
 
     divider();
@@ -373,7 +373,7 @@ int main(int argc, char *argv[])
     clock_gettime(CLOCK_MONOTONIC, &end);
     calc = time_between_timestamp(start, end);
     printf("\nF3: Time to process points of file 2: %lf ms\n", calc);
-    after_process_size2 = points2.n;
+    after_process_size2 = points2->n;
     printf("\n === Number of points after process: %d === \n", after_process_size2);
 
     divider();
@@ -402,7 +402,7 @@ int main(int argc, char *argv[])
     clock_gettime(CLOCK_MONOTONIC, &end);
     calc = time_between_timestamp(start, end);
     printf("\nF3: Time to process points of file 3: %lf ms\n", calc);
-    after_process_size3 = points3.n;
+    after_process_size3 = points3->n;
     printf("\n === Number of points after process: %d === \n", after_process_size3);
 
     divider();

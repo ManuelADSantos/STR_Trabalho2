@@ -15,11 +15,13 @@
 #define TOO_FAR_X 30.0
 #define TOO_FAR_Y 10.0
 
+// Aesthetic divider
 void divider()
 {
     printf("\n========================================\n");
 }
 
+// Linked list node
 struct node
 {
     double x;
@@ -30,13 +32,13 @@ struct node
 
 // Store LiDAR points in a struct
 struct point_struct
-{          // coordinates of a point c -> x[c], y[c], z[c]
+{
     int n; // number of points
     struct node *head;
 };
 
 // Read LiDAR points from a file
-struct point_struct read_points(char *filename) // recieve a file name and return a struct with the points
+struct point_struct *read_points(char *filename) // recieve a file name and return a pointer to a struct with the points
 {
     size_t line = 0;
     char *buffer = NULL;
@@ -89,8 +91,6 @@ struct point_struct read_points(char *filename) // recieve a file name and retur
 
         fscanf(fp, "%lf %lf %lf", &pt->x, &pt->y, &pt->z);
 
-        // printf("Point %d of %d: %lf %lf %lf\n", i + 1, points->n, pt->x, pt->y, pt->z);
-
         // check if the point is valid
         if (pt->x > maxX) // x
             maxX = pt->x;
@@ -131,9 +131,6 @@ struct point_struct read_points(char *filename) // recieve a file name and retur
 
     for (int i = 0; i < points->n; i++) // ∑(Xi−μ)^2
     {
-        if (now_pt->next == NULL)
-            break;
-
         stdX += pow(now_pt->x - meanX, 2);
         stdY += pow(now_pt->y - meanY, 2);
         stdZ += pow(now_pt->z - meanZ, 2);
@@ -159,24 +156,24 @@ struct point_struct read_points(char *filename) // recieve a file name and retur
 
     fclose(fp);
 
-    return *points;
+    return points;
 }
 
 // remove points that are too far away or behind the car
 void decrease_points(struct point_struct *points) // pre-processing the points
 {
-    int nr = points->n;
-
-    int i = 0;
     struct node *now_pt = points->head;
-    struct node *prev_pt;
+    struct node *prev_pt, *aux_pt;
 
-    while (i < nr)
+    while (1)
     {
+        if (now_pt == NULL)
+            break;
+
         // remove points that are too far away
         if ((now_pt->x < 0.0) || ((now_pt->x <= 2.0) && (abs(now_pt->y <= 1.0))) || (now_pt->x > TOO_FAR_X) || (abs(now_pt->y) > TOO_FAR_Y))
         {
-            if (i == 0)
+            if (points->head == now_pt)
             {
                 points->head = now_pt->next;
             }
@@ -185,13 +182,16 @@ void decrease_points(struct point_struct *points) // pre-processing the points
                 prev_pt->next = now_pt->next;
             }
 
-            // free(now_pt);
             points->n--;
+            aux_pt = now_pt->next;
+            free(now_pt);
+            now_pt = aux_pt;
         }
-
-        i++;
-        prev_pt = now_pt;
-        now_pt = now_pt->next;
+        else
+        {
+            prev_pt = now_pt;
+            now_pt = now_pt->next;
+        }
     }
 }
 
@@ -214,30 +214,34 @@ void road_detection(struct point_struct *points)
 
     */
 
-    double minZ = INT_MIN;
-    double maxZ = INT_MAX;
+    double minZ = 0.0;
+    double maxZ = 1.5;
 
-    struct node *now_pt = points->head;
-    struct node *prev_pt;
+    struct node *now_pt;
+    struct node *prev_pt, *aux_pt;
 
-    int size = points->n;
+    int invalid = 0;
 
     double xx, yy;
 
-    xx = 2.0;
-    yy = 4.0;
+    xx = 0.0;
+    yy = 0.0;
 
-    double gridX = 30.0;
-    double gridY = 10.0;
-    double offset = 0.2;
+    double gridX = 20.0;
+    double gridY = 20.0;
+    double offset = 0.5;
 
     while (xx < gridX)
     {
         while (yy < gridY)
         {
-            for (int i = 0; i < size; i++)
+            now_pt = points->head;
+            while (1)
             {
-                if ((now_pt->x >= xx) && (now_pt->x <= (xx + offset)) && (now_pt->y >= yy) && (now_pt->y <= (yy + offset)))
+                if (now_pt == NULL)
+                    break;
+
+                if (((now_pt->x >= xx) && (now_pt->x <= (xx + offset))) && ((now_pt->y + 10.0 >= yy) && (now_pt->y + 10.0 <= (yy + offset))))
                 {
                     if (now_pt->z < minZ)
                     {
@@ -248,52 +252,63 @@ void road_detection(struct point_struct *points)
                         maxZ = now_pt->z;
                     }
                 }
-                i++;
-                prev_pt = now_pt;
+
                 now_pt = now_pt->next;
             }
-            now_pt = points->head; // reset the pointer to the head of the list
-            int j = 0;
-            while (j < size)
+
+            if (abs(maxZ - minZ) > 1.5 || maxZ > 1.5)
+                invalid = 1;
+
+            if (invalid == 1)
             {
+                now_pt = points->head; // reset the pointer to the head of the list
 
-                if ((abs(maxZ - minZ) < 0.5) || abs(maxZ) > 1.5) // check z now
+                while (1)
                 {
-                    if (j == 0) // first element
-                    {
-                        points->head = now_pt->next;
-                    }
-                    else if (now_pt->next == NULL) // last element
-                    {
-                        prev_pt->next = NULL;
-                    }
-                    else // other elements
-                    {
-                        prev_pt->next = now_pt->next;
-                    }
+                    if (now_pt == NULL)
+                        break;
 
-                    // free(now_pt);
-                    points->n--;
+                    if (((now_pt->x >= xx) && (now_pt->x <= (xx + offset))) && ((now_pt->y + 10.0 >= yy) && (now_pt->y + 10.0 <= (yy + offset))))
+                    {
+                        if (points->head == now_pt)
+                        {
+                            points->head = now_pt->next;
+                        }
+                        else
+                        {
+                            prev_pt->next = now_pt->next;
+                        }
+
+                        points->n--;
+                        aux_pt = now_pt->next;
+                        free(now_pt);
+                        now_pt = aux_pt;
+                    }
+                    else
+                    {
+                        prev_pt = now_pt;
+                        now_pt = now_pt->next;
+                    }
                 }
-                j++;
             }
             // reset min and max
-            minZ = INT_MIN;
-            maxZ = INT_MAX;
+            minZ = 0.0;
+            maxZ = 1.5;
 
             yy += offset;
+            invalid = 0;
         }
         xx += offset;
-        yy = -10.0;
+        yy = 0.0;
     }
 }
 
 // ==== Save results to file ====
-void saveToFile(char *filename, struct point_struct points, int size)
+void saveToFile(char *filename, struct point_struct *points, int size)
 { // open file for writing results
     FILE *outfile;
     char line[50];
-    struct node *pt = points.head;
+    struct node *pt = points->head;
 
     outfile = fopen(filename, "w");
 
@@ -332,9 +347,9 @@ int main(int argc, char *argv[])
     char f1[] = "point_cloud1.txt";
     char f2[] = "point_cloud2.txt";
     char f3[] = "point_cloud3.txt";
-    double calc = 0.0;
+    double calc = 0.0, totalTime = 0.0;
 
-    struct point_struct points1, points2, points3;
+    struct point_struct *points1, *points2, *points3;
     struct timespec start, end;
     int after_process_size1 = 0, after_process_size2 = 0, after_process_size3 = 0;
 
@@ -348,35 +363,35 @@ int main(int argc, char *argv[])
     clock_gettime(CLOCK_MONOTONIC, &end);
     calc = time_between_timestamp(start, end);
     printf("\nF1: Time to read points of file 1: %lf ms\n", calc);
+    totalTime += calc;
 
     // FUNCTION 2
     clock_gettime(CLOCK_MONOTONIC, &start);
-    decrease_points(&points1);
+    decrease_points(points1);
     clock_gettime(CLOCK_MONOTONIC, &end);
     calc = time_between_timestamp(start, end);
     printf("\nF2: Time to process points of file 1: %lf ms\n", calc);
-    after_process_size1 = points1.n;
+    after_process_size1 = points1->n;
     printf("\n === Number of points after pre-process: %d === \n", after_process_size1);
-
-    // struct node *temp = points1.head;
-    // for (int i = 0; i < after_process_size1; i++)
-    // {
-    //     printf("i = %d || x: %lf || y: %lf || z: %lf\n", i, temp->x, temp->y, temp->z);
-    //     temp = temp->next;
-    // }
+    totalTime += calc;
 
     // FUNCTION 3
     clock_gettime(CLOCK_MONOTONIC, &start);
-    road_detection(&points1);
+    road_detection(points1);
     clock_gettime(CLOCK_MONOTONIC, &end);
     calc = time_between_timestamp(start, end);
-    printf("\nF3: Time to process points of file 1: %lf ms\n", calc);
-    after_process_size1 = points1.n;
+    printf("\nF3: Time to pre-process points of file 1: %lf ms\n", calc);
+    after_process_size1 = points1->n;
     printf("\n === Number of points after process: %d === \n", after_process_size1);
+    totalTime += calc;
+
+    printf("\nIt took a total of %g ms to run all functions\n", totalTime);
 
     divider();
 
     // ================== FILE 2 ==================
+
+    totalTime = 0.0;
 
     // FUNCTION 1
     printf("\n  Reading points from file 2 ... \n");
@@ -385,24 +400,29 @@ int main(int argc, char *argv[])
     clock_gettime(CLOCK_MONOTONIC, &end);
     calc = time_between_timestamp(start, end);
     printf("\nF1: Time to read points of file 2: %lf ms\n", calc);
+    totalTime += calc;
 
     // FUNCTION 2
     clock_gettime(CLOCK_MONOTONIC, &start);
-    decrease_points(&points2);
+    decrease_points(points2);
     clock_gettime(CLOCK_MONOTONIC, &end);
     calc = time_between_timestamp(start, end);
-    printf("\nF2: Time to process points of file 2: %lf ms\n", calc);
-    after_process_size2 = points2.n;
+    printf("\nF2: Time to pre-process points of file 2: %lf ms\n", calc);
+    after_process_size2 = points2->n;
     printf("\n === Number of points after pre-process: %d === \n", after_process_size2);
+    totalTime += calc;
 
     // // FUNCTION 3
-    // clock_gettime(CLOCK_MONOTONIC, &start);
-    // road_detection(&points2);
-    // clock_gettime(CLOCK_MONOTONIC, &end);
-    // calc = time_between_timestamp(start, end);
-    // printf("\nF3: Time to process points of file 2: %lf ms\n", calc);
-    // after_process_size2 = points2.n;
-    // printf("\n === Number of points after process: %d === \n", after_process_size2);
+    clock_gettime(CLOCK_MONOTONIC, &start);
+    road_detection(points2);
+    clock_gettime(CLOCK_MONOTONIC, &end);
+    calc = time_between_timestamp(start, end);
+    printf("\nF3: Time to process points of file 2: %lf ms\n", calc);
+    after_process_size2 = points2->n;
+    printf("\n === Number of points after process: %d === \n", after_process_size2);
+    totalTime += calc;
+
+    printf("\nIt took a total of %g ms to run all functions\n", totalTime);
 
     divider();
 
@@ -415,39 +435,35 @@ int main(int argc, char *argv[])
     clock_gettime(CLOCK_MONOTONIC, &end);
     calc = time_between_timestamp(start, end);
     printf("\nF1: Time to read points of file 3: %lf ms\n", calc);
+    totalTime += calc;
 
     // FUNCTION 2
     clock_gettime(CLOCK_MONOTONIC, &start);
-    decrease_points(&points3);
+    decrease_points(points3);
     clock_gettime(CLOCK_MONOTONIC, &end);
     calc = time_between_timestamp(start, end);
-    printf("\nF2: Time to process points of file 3: %lf ms\n", calc);
-    after_process_size3 = points3.n;
+    printf("\nF2: Time to pre-process points of file 3: %lf ms\n", calc);
+    after_process_size3 = points3->n;
     printf("\n === Number of points after pre-process: %d === \n", after_process_size3);
+    totalTime += calc;
 
-    // // FUNCTION 3
-    // clock_gettime(CLOCK_MONOTONIC, &start);
-    // road_detection(&points3);
-    // clock_gettime(CLOCK_MONOTONIC, &end);
-    // calc = time_between_timestamp(start, end);
-    // printf("\nF3: Time to process points of file 3: %lf ms\n", calc);
-    // after_process_size3 = points3.n;
-    // printf("\n === Number of points after process: %d === \n", after_process_size3);
+    // FUNCTION 3
+    clock_gettime(CLOCK_MONOTONIC, &start);
+    road_detection(points3);
+    clock_gettime(CLOCK_MONOTONIC, &end);
+    calc = time_between_timestamp(start, end);
+    printf("\nF3: Time to process points of file 3: %lf ms\n", calc);
+    after_process_size3 = points3->n;
+    printf("\n === Number of points after process: %d === \n", after_process_size3);
+    totalTime += calc;
+
+    printf("\nIt took a total of %g ms to run all functions\n", totalTime);
 
     divider();
 
     char outf1[] = "results1.txt";
     char outf2[] = "results2.txt";
     char outf3[] = "results3.txt";
-
-    // printf("size of points1: %d || size of points2: %d || size of points3: %d\n", after_process_size1, after_process_size2, after_process_size3);
-
-    // struct node *temp = points1.head;
-    // for (int i = 0; i < after_process_size1; i++)
-    // {
-    //     printf("i = %d || x: %lf || y: %lf || z: %lf\n", i, temp->x, temp->y, temp->z);
-    //     temp = temp->next;
-    // }
 
     saveToFile(outf1, points1, after_process_size1);
     printf("Results of file 1 saved\n");
@@ -459,9 +475,9 @@ int main(int argc, char *argv[])
     divider();
 
     // free memory
-    // free(points1);
-    // free(points2);
-    // free(points3);
+    free(points1);
+    free(points2);
+    free(points3);
 
     return 0;
 }
