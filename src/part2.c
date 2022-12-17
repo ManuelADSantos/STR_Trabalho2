@@ -1,13 +1,14 @@
-/*
-    COMPILE: gcc part1.c timestamps.c -o part1 -Wall -lm
-*/
-
+// =========================================================================
+//                                PART 2
+// =========================================================================
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
 #include <math.h>
 #include <time.h> //clock_gettime
 #include "timestamps.h"
+#include "functions.h"
 #include <string.h>
 #include <semaphore.h>
 #include <pthread.h>
@@ -15,17 +16,6 @@
 // Semaphores
 sem_t f1Tof2;
 sem_t f2Tof3;
-
-// valores do enunciado
-#define MIN_VALUE 10.0
-#define TOO_FAR_X 30.0
-#define TOO_FAR_Y 10.0
-
-// Aesthetic divider
-void divider()
-{
-    printf("\n========================================\n");
-}
 
 // Linked list node
 struct node
@@ -36,385 +26,142 @@ struct node
     struct node *next;
 };
 
-// Store LiDAR points in a struct
-struct point_struct
-{
-    int n; // number of points
-    struct node *head;
-};
+struct timespec zeroHour;
 
-// Read LiDAR points from a file
-struct point_struct *read_points(char *filename) // recieve a file name and return a pointer to a struct with the points
-{
-    size_t line = 0;
-    char *buffer = NULL;
-    FILE *fp;
-
-    double maxX, minX, maxY, minY, maxZ, minZ;
-    maxX = maxY = maxZ = 0.0;
-    minX = minY = minZ = MIN_VALUE;
-
-    double stdX, stdY, stdZ;
-    stdX = stdY = stdZ = 0.0;
-
-    double sumX, sumY, sumZ;
-    sumX = sumY = sumZ = 0.0;
-
-    double meanX, meanY, meanZ;
-
-    struct point_struct *points;
-
-    points = (struct point_struct *)malloc(sizeof(struct point_struct)); // allocate memory for the struct
-    points->n = 0;
-
-    // Open file
-    fp = fopen(filename, "r");
-    if (fp == NULL)
-    {
-        printf("Error opening file");
-        exit(1);
-    }
-
-    // Count lines in file
-    while (getline(&buffer, &line, fp) >= 0)
-    {
-        points->n++;
-    }
-    free(buffer);
-    buffer = NULL;
-    fseek(fp, SEEK_SET, 0); // rewind file pointer to the beginning of the file
-
-    struct node *now_pt, *prev_pt;
-
-    for (int i = 0; i < points->n; i++)
-    {
-        struct node *pt = (struct node *)malloc(sizeof(struct node)); // allocate memory for the node of linked list
-
-        if (i == 0)
-            points->head = pt;
-        else
-            prev_pt->next = pt;
-
-        fscanf(fp, "%lf %lf %lf", &pt->x, &pt->y, &pt->z);
-
-        // check if the point is valid
-        if (pt->x > maxX) // x
-            maxX = pt->x;
-
-        if (pt->x < minX)
-            minX = pt->x;
-
-        if (pt->y > maxY) // y
-            maxY = pt->y;
-
-        if (pt->y < minY)
-            minY = pt->y;
-
-        if (pt->z > maxZ) // z
-            maxZ = pt->z;
-
-        if (pt->z < minZ)
-            minZ = pt->z;
-
-        // sum up the points
-        sumX += pt->x;
-        sumY += pt->y;
-        sumZ += pt->z;
-
-        meanX = sumX / points->n;
-        meanY = sumY / points->n;
-        meanZ = sumZ / points->n;
-
-        prev_pt = pt;
-    }
-    // calculate standard deviation
-    /*
-     *  σ=√[ [1/(N-1)] * ∑(Xi−μ)^2 ]
-     *  where μ is the mean of the data set, and N is the number of data points.
-     */
-
-    now_pt = points->head;
-
-    for (int i = 0; i < points->n; i++) // ∑(Xi−μ)^2
-    {
-        stdX += pow(now_pt->x - meanX, 2);
-        stdY += pow(now_pt->y - meanY, 2);
-        stdZ += pow(now_pt->z - meanZ, 2);
-
-        now_pt = now_pt->next;
-    }
-    // divide by N-1
-    stdX = stdX / ((points->n) - 1);
-    stdY = stdY / ((points->n) - 1);
-    stdZ = stdZ / ((points->n) - 1);
-
-    // take the square root
-    stdX = sqrt(stdX);
-    stdY = sqrt(stdY);
-    stdZ = sqrt(stdZ);
-
-    // print the results
-    printf("Results:\n");
-    printf("Number of points: %d\n", points->n);
-    printf("Max X: %lf, Min X: %lf, Std X: %lf, Mean X: %lf\n", maxX, minX, stdX, meanX);
-    printf("Max Y: %lf, Min Y: %lf, Std Y: %lf, Mean Y: %lf\n", maxY, minY, stdY, meanY);
-    printf("Max Z: %lf, Min Z: %lf, Std Z: %lf, Mean Z: %lf\n", maxZ, minZ, stdZ, meanZ);
-
-    fclose(fp);
-
-    return points;
-}
-
-// remove points that are too far away or behind the car
-void decrease_points(struct point_struct *points) // pre-processing the points
-{
-    struct node *now_pt = points->head;
-    struct node *prev_pt, *aux_pt;
-
-    while (1)
-    {
-        if (now_pt == NULL)
-            break;
-
-        // remove points that are too far away
-        if ((now_pt->x < 0.0) || ((now_pt->x <= 2.0) && (abs(now_pt->y <= 1.0))) || (now_pt->x > TOO_FAR_X) || (abs(now_pt->y) > TOO_FAR_Y))
-        {
-            if (points->head == now_pt)
-            {
-                points->head = now_pt->next;
-            }
-            else
-            {
-                prev_pt->next = now_pt->next;
-            }
-
-            points->n--;
-            aux_pt = now_pt->next;
-            free(now_pt);
-            now_pt = aux_pt;
-        }
-        else
-        {
-            prev_pt = now_pt;
-            now_pt = now_pt->next;
-        }
-    }
-}
-
-// /*
-//  * Car dimensions: 4 x 2
-//  * Remove points that are too close to the car
-//  * Grid: 30x20
-//  * hight: 1.5 <----
-//  * flat ground: Zmax - Zmin < 0.5 < -----
-//  */
-void road_detection(struct point_struct *points)
-{
-
-    /*
-    x = cellsize * ( i - (colums/2) ) + startX
-    y = cellsize * ( j - (rows/2) ) + startY
-
-    i = floor ((( x - startX + (cellsize/2)) / cellsize ) + (cols/2))
-    J = floor ((( y - startY + (cellsize/2)) / cellsize ) + (rows/2))
-
-    */
-
-    double minZ = 0.0;
-    double maxZ = 1.5;
-
-    struct node *now_pt;
-    struct node *prev_pt, *aux_pt;
-
-    int invalid = 0;
-
-    double xx, yy;
-
-    xx = 0.0;
-    yy = 0.0;
-
-    double gridX = 20.0;
-    double gridY = 20.0;
-    double offset = 0.5;
-
-    while (xx < gridX)
-    {
-        while (yy < gridY)
-        {
-            now_pt = points->head;
-            while (1)
-            {
-                if (now_pt == NULL)
-                    break;
-
-                if (((now_pt->x >= xx) && (now_pt->x <= (xx + offset))) && ((now_pt->y + 10.0 >= yy) && (now_pt->y + 10.0 <= (yy + offset))))
-                {
-                    if (now_pt->z < minZ)
-                    {
-                        minZ = now_pt->z;
-                    }
-                    if (now_pt->z > maxZ)
-                    {
-                        maxZ = now_pt->z;
-                    }
-                }
-
-                now_pt = now_pt->next;
-            }
-
-            if (abs(maxZ - minZ) > 1.5 || maxZ > 1.5)
-                invalid = 1;
-
-            if (invalid == 1)
-            {
-                now_pt = points->head; // reset the pointer to the head of the list
-
-                while (1)
-                {
-                    if (now_pt == NULL)
-                        break;
-
-                    if (((now_pt->x >= xx) && (now_pt->x <= (xx + offset))) && ((now_pt->y + 10.0 >= yy) && (now_pt->y + 10.0 <= (yy + offset))))
-                    {
-                        if (points->head == now_pt)
-                        {
-                            points->head = now_pt->next;
-                        }
-                        else
-                        {
-                            prev_pt->next = now_pt->next;
-                        }
-
-                        points->n--;
-                        aux_pt = now_pt->next;
-                        free(now_pt);
-                        now_pt = aux_pt;
-                    }
-                    else
-                    {
-                        prev_pt = now_pt;
-                        now_pt = now_pt->next;
-                    }
-                }
-            }
-            // reset min and max
-            minZ = 0.0;
-            maxZ = 1.5;
-
-            yy += offset;
-            invalid = 0;
-        }
-        xx += offset;
-        yy = 0.0;
-    }
-}
-
-// ==== Save results to file ====
-void saveToFile(char *filename, struct point_struct *points, int size)
-{ // open file for writing results
-    FILE *outfile;
-    char line[50];
-    struct node *pt = points->head;
-
-    outfile = fopen(filename, "w");
-
-    if (outfile == NULL)
-    {
-        fprintf(stderr, "\nError openening file\n");
-        exit(1);
-    }
-
-    for (int i = 0; i < size; i++)
-    {
-        sprintf(line, "%lf %lf %lf\n", pt->x, pt->y, pt->z);
-        fputs(line, outfile);
-        if (ferror(outfile))
-        {
-            printf("Error writing in file!\n");
-            exit(1);
-        }
-        if (pt->next == NULL)
-        {
-            break;
-        }
-        else
-        {
-            pt = pt->next;
-        }
-    }
-    memset(line, 0, sizeof(line));
-
-    fclose(outfile);
-}
-
-// =========================================================================
-//                                PART 2
-// =========================================================================
 struct point_struct *fromF1, *fromF2, *fromF3;
 
 // thread responsável por ler os pontos do ficheiro dado
 void *thread_read(void *arguments)
 {
-    struct timespec regists[9];
+    double auxBegin, auxEnd, auxTarget;
+    double regists[9];
+    struct timespec target, end, sleep, begin;
+    struct timespec frequency = {0, 1e8}; // 100ms
 
-    struct timespec begin, target, end, sleep;
-    struct timespec frequency = {0, 1e8};
+    // LiDAR takes 100ms to give a file with points
+    clock_gettime(CLOCK_MONOTONIC, &begin); //  begin (when it started)
+    sleep = sub_timestamp(zeroHour, begin);
+
+    // wait until the first file is ready
+    if (sleep.tv_nsec > 0)
+    {
+        printf("\nWaiting for the first file to be ready...\n");
+        clock_nanosleep(CLOCK_MONOTONIC, 0, &sleep, NULL);
+    }
 
     clock_gettime(CLOCK_MONOTONIC, &begin);
     fromF1 = read_points("point_cloud1.txt");
     clock_gettime(CLOCK_MONOTONIC, &end);
+
+    auxBegin = time_between_timestamp(zeroHour, begin);
+
+    target = sum_timestamp(begin, frequency);             // target time = begin + 100ms (frequency)
+    auxTarget = time_between_timestamp(zeroHour, target); // target time = begin + 100ms (frequency)
+
+    auxEnd = time_between_timestamp(zeroHour, end);
+
     sem_post(&f1Tof2);
 
-    regists[0] = begin;
-    regists[1] = target = sum_timestamp(begin, frequency);
-    regists[2] = end;
+    regists[0] = auxBegin;
+    regists[1] = auxTarget;
+    regists[2] = auxEnd;
 
-    sleep = sub_timestamp(end, target);
-    clock_nanosleep(CLOCK_MONOTONIC, 0, &sleep, NULL);
+    //  ============== FILE 2 ==============
+    divider();
+    clock_gettime(CLOCK_MONOTONIC, &begin); //  begin (when it started)
+    sleep = sub_timestamp(zeroHour, begin);
+
+    // wait until the first file is ready
+    if (sleep.tv_nsec > 0)
+    {
+        printf("\nWaiting for the second file to be ready...\n");
+        clock_nanosleep(CLOCK_MONOTONIC, 0, &sleep, NULL);
+    }
 
     clock_gettime(CLOCK_MONOTONIC, &begin);
     fromF1 = read_points("point_cloud2.txt");
     clock_gettime(CLOCK_MONOTONIC, &end);
+
+    auxBegin = time_between_timestamp(zeroHour, begin);
+
+    target = sum_timestamp(begin, frequency); // target time = begin + 100ms (frequency)
+    auxTarget = time_between_timestamp(zeroHour, target);
+
+    auxEnd = time_between_timestamp(zeroHour, end);
+
     sem_post(&f1Tof2);
 
-    regists[3] = begin;
-    regists[4] = target = sum_timestamp(begin, frequency);
-    regists[5] = end;
+    regists[3] = auxBegin;
+    regists[4] = auxTarget;
+    regists[5] = auxEnd;
 
-    sleep = sub_timestamp(end, target);
-    clock_nanosleep(CLOCK_MONOTONIC, 0, &sleep, NULL);
+    clock_gettime(CLOCK_MONOTONIC, &begin); //  begin (when it started)
+    sleep = sub_timestamp(zeroHour, begin);
+
+    // ================= FILE 3 =================
+    divider();
+    if (sleep.tv_nsec > 0)
+    {
+        printf("\nWaiting for the third file to be ready...\n");
+        clock_nanosleep(CLOCK_MONOTONIC, 0, &sleep, NULL);
+    }
 
     clock_gettime(CLOCK_MONOTONIC, &begin);
     fromF1 = read_points("point_cloud3.txt");
     clock_gettime(CLOCK_MONOTONIC, &end);
+
+    auxBegin = time_between_timestamp(zeroHour, begin);
+
+    target = sum_timestamp(begin, frequency);             // target time = begin + 100ms (frequency)
+    auxTarget = time_between_timestamp(zeroHour, target); // target time = begin + 100ms (frequency)
+
+    auxEnd = time_between_timestamp(zeroHour, end);
+
     sem_post(&f1Tof2);
 
-    regists[6] = begin;
-    regists[7] = target = sum_timestamp(begin, frequency);
-    regists[8] = end;
+    regists[6] = auxBegin;
+    regists[7] = auxTarget;
+    regists[8] = auxEnd;
 
-    sleep = sub_timestamp(end, target);
-
-    printf("         point_cloud1      point_cloud2      point_cloud3   \n");
-    printf("BEGIN     %lf               %lf               %lf           \n", return_milli(regists[0]), return_milli(regists[1]), return_milli(regists[2]));
-    printf("TARGET    %lf               %lf               %lf           \n", return_milli(regists[3]), return_milli(regists[4]), return_milli(regists[5]));
-    printf("END       %lf               %lf               %lf           \n", return_milli(regists[6]), return_milli(regists[7]), return_milli(regists[8]));
+    printf("\n\n");
+    printf(" ==== Thread 1 ==== \n");
+    printf("                 BEGIN                   TARGET                   END     \n");
+    printf("point_cloud1    %lf               %lf               %lf           \n", regists[0], regists[1], regists[2]);
+    printf("point_cloud2    %lf               %lf               %lf           \n", regists[3], regists[4], regists[5]);
+    printf("point_cloud3    %lf               %lf               %lf           \n", regists[6], regists[7], regists[8]);
 
     return NULL;
 }
+
+// =======================================================================
 
 // thread responsável por pre processar  os pontos
 void *thread_preprocess(void *arguments)
 {
+    divider();
+
+    double auxBegin, auxEnd, auxTarget;
+    double regists[9];
     struct timespec begin, target, end, sleep;
     struct timespec frequency = {0, 1e8};
 
     sem_wait(&f1Tof2);
+
+    // ================= FILE 1 =================
     clock_gettime(CLOCK_MONOTONIC, &begin);
     fromF2 = fromF1;
     decrease_points(fromF2);
     clock_gettime(CLOCK_MONOTONIC, &end);
     sem_post(&f2Tof3);
+
+    auxBegin = time_between_timestamp(zeroHour, begin);
+    target = sum_timestamp(begin, frequency); // target time = begin + 100ms (frequency)
+    auxTarget = time_between_timestamp(zeroHour, target);
+    auxEnd = time_between_timestamp(zeroHour, end);
+
+    regists[0] = auxBegin;
+    regists[1] = auxTarget;
+    regists[2] = auxEnd;
 
     target = sum_timestamp(begin, frequency);
     sleep = sub_timestamp(end, target);
@@ -425,7 +172,19 @@ void *thread_preprocess(void *arguments)
     fromF2 = fromF1;
     decrease_points(fromF2);
     clock_gettime(CLOCK_MONOTONIC, &end);
+
+    auxBegin = time_between_timestamp(zeroHour, begin);
+
+    target = sum_timestamp(begin, frequency);             // target time = begin + 100ms (frequency)
+    auxTarget = time_between_timestamp(zeroHour, target); // target time = begin + 100ms (frequency)
+
+    auxEnd = time_between_timestamp(zeroHour, end);
+
     sem_post(&f2Tof3);
+
+    regists[3] = auxBegin;
+    regists[4] = auxTarget;
+    regists[5] = auxEnd;
 
     target = sum_timestamp(begin, frequency);
     sleep = sub_timestamp(end, target);
@@ -436,18 +195,43 @@ void *thread_preprocess(void *arguments)
     fromF2 = fromF1;
     decrease_points(fromF2);
     clock_gettime(CLOCK_MONOTONIC, &end);
+
+    auxBegin = time_between_timestamp(zeroHour, begin);
+
+    target = sum_timestamp(begin, frequency);             // target time = begin + 100ms (frequency)
+    auxTarget = time_between_timestamp(zeroHour, target); // target time = begin + 100ms (frequency)
+
+    auxEnd = time_between_timestamp(zeroHour, end);
+
     sem_post(&f2Tof3);
+
+    regists[6] = auxBegin;
+    regists[7] = auxTarget;
+    regists[8] = auxEnd;
+
+    printf("\n\n");
+    printf(" ==== Thread 2 ==== \n");
+    printf("                 BEGIN                   TARGET                   END     \n");
+    printf("point_cloud1    %lf               %lf               %lf           \n", regists[0], regists[1], regists[2]);
+    printf("point_cloud2    %lf               %lf               %lf           \n", regists[3], regists[4], regists[5]);
+    printf("point_cloud3    %lf               %lf               %lf           \n", regists[6], regists[7], regists[8]);
 
     return NULL;
 }
 
+// =======================================================================
+
 // thread responsável por processar os pontos
 void *thread_process(void *arguments)
 {
+    double auxBegin, auxEnd, auxTarget;
+    double regists[9];
     struct timespec begin, target, end, sleep;
     struct timespec frequency = {0, 1e8};
 
     sem_wait(&f2Tof3);
+
+    // ================= FILE 1 =================
     clock_gettime(CLOCK_MONOTONIC, &begin);
     fromF3 = fromF2;
     decrease_points(fromF3);
@@ -457,11 +241,29 @@ void *thread_process(void *arguments)
     sleep = sub_timestamp(end, target);
     clock_nanosleep(CLOCK_MONOTONIC, 0, &sleep, NULL);
 
+    auxBegin = time_between_timestamp(zeroHour, begin);
+    target = sum_timestamp(begin, frequency); // target time = begin + 100ms (frequency)
+    auxTarget = time_between_timestamp(zeroHour, target);
+    auxEnd = time_between_timestamp(zeroHour, end);
+
+    regists[0] = auxBegin;
+    regists[1] = auxTarget;
+    regists[2] = auxEnd;
+
     sem_wait(&f2Tof3);
     clock_gettime(CLOCK_MONOTONIC, &begin);
     fromF3 = fromF2;
     decrease_points(fromF3);
     clock_gettime(CLOCK_MONOTONIC, &end);
+
+    auxBegin = time_between_timestamp(zeroHour, begin);
+    target = sum_timestamp(begin, frequency); // target time = begin + 100ms (frequency)
+    auxTarget = time_between_timestamp(zeroHour, target);
+    auxEnd = time_between_timestamp(zeroHour, end);
+
+    regists[3] = auxBegin;
+    regists[4] = auxTarget;
+    regists[5] = auxEnd;
 
     target = sum_timestamp(begin, frequency);
     sleep = sub_timestamp(end, target);
@@ -472,13 +274,30 @@ void *thread_process(void *arguments)
     fromF3 = fromF2;
     decrease_points(fromF2);
     clock_gettime(CLOCK_MONOTONIC, &end);
+
+    auxBegin = time_between_timestamp(zeroHour, begin);
+    target = sum_timestamp(begin, frequency); // target time = begin + 100ms (frequency)
+    auxTarget = time_between_timestamp(zeroHour, target);
+    auxEnd = time_between_timestamp(zeroHour, end);
+
+    regists[6] = auxBegin;
+    regists[7] = auxTarget;
+    regists[8] = auxEnd;
+
+    divider();
+    printf("\n\n");
+    printf(" ==== Thread 3 ==== \n");
+    printf("                 BEGIN                   TARGET                   END     \n");
+    printf("point_cloud1    %lf               %lf               %lf           \n", regists[0], regists[1], regists[2]);
+    printf("point_cloud2    %lf               %lf               %lf           \n", regists[3], regists[4], regists[5]);
+    printf("point_cloud3    %lf               %lf               %lf           \n", regists[6], regists[7], regists[8]);
 
     return NULL;
 }
 // ================================== MAIN ==================================
 int main(int argc, char *argv[])
 {
-    struct timespec zeroHour;
+
     pthread_t threads[3];
     int thread_args[3];
     short i;
@@ -494,7 +313,8 @@ int main(int argc, char *argv[])
     printf("IN MAIN: Creating thread 1. \n");
     threads[0] = 0;
     thread_args[0] = 0;
-    pthread_create(&threads[0], NULL, thread_read, &thread_args[0]);
+    int result = pthread_create(&threads[0], NULL, thread_read, &thread_args[0]);
+    printf("result: %d", result);
 
     printf("IN MAIN: Creating thread 2. \n");
     threads[1] = 1;
@@ -514,9 +334,11 @@ int main(int argc, char *argv[])
         pthread_join(threads[i], NULL);
     }
 
-    printf("IN MAIN: All threads ended\n");
+    divider();
+    printf("\nIN MAIN: All threads ended\n");
 
     // vamos apagar os semáforos criados
+    printf("\nIN MAIN: Destroying semaphores. \n");
     sem_destroy(&f1Tof2);
     sem_destroy(&f2Tof3);
 
