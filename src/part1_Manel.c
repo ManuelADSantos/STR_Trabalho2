@@ -12,7 +12,7 @@
 
 // valores do enunciado
 #define MIN_VALUE 10.0
-#define TOO_FAR_X 30.0
+#define TOO_FAR_X 15.0
 #define TOO_FAR_Y 10.0
 
 // Aesthetic divider
@@ -170,8 +170,8 @@ void decrease_points(struct point_struct *points) // pre-processing the points
         if (now_pt == NULL)
             break;
 
-        // remove points that are too far away
-        if ((now_pt->x < 0.0) || ((now_pt->x <= 2.0) && (abs(now_pt->y <= 1.0))) || (now_pt->x > TOO_FAR_X) || (abs(now_pt->y) > TOO_FAR_Y))
+        // remove points that are too far away or behind the car
+        if ((now_pt->x < 0.0) || ((now_pt->x <= 2.0) && (abs(now_pt->y <= 0.2))) || (now_pt->x > TOO_FAR_X) || (abs(now_pt->y) > TOO_FAR_Y) || now_pt->y > 1.9 || (now_pt->y < -3 && now_pt->x > 2 && now_pt->x < 4 && now_pt->z > -0.8))
         {
             if (points->head == now_pt)
             {
@@ -184,7 +184,7 @@ void decrease_points(struct point_struct *points) // pre-processing the points
 
             points->n--;
             aux_pt = now_pt->next;
-            free(now_pt);
+            // free(now_pt);
             now_pt = aux_pt;
         }
         else
@@ -241,6 +241,7 @@ void road_detection(struct point_struct *points)
                 if (now_pt == NULL)
                     break;
 
+                // search for min and max values of z in the current grid cell
                 if (((now_pt->x >= xx) && (now_pt->x <= (xx + offset))) && ((now_pt->y + 10.0 >= yy) && (now_pt->y + 10.0 <= (yy + offset))))
                 {
                     if (now_pt->z < minZ)
@@ -255,8 +256,8 @@ void road_detection(struct point_struct *points)
 
                 now_pt = now_pt->next;
             }
-
-            if (abs(maxZ - minZ) > 1.5 || maxZ > 1.5)
+            // mark the existence of invalid points
+            if (abs(maxZ - minZ) < 0.1 || maxZ > 1.5)
                 invalid = 1;
 
             if (invalid == 1)
@@ -267,7 +268,7 @@ void road_detection(struct point_struct *points)
                 {
                     if (now_pt == NULL)
                         break;
-
+                    // remove unwanted points
                     if (((now_pt->x >= xx) && (now_pt->x <= (xx + offset))) && ((now_pt->y + 10.0 >= yy) && (now_pt->y + 10.0 <= (yy + offset))))
                     {
                         if (points->head == now_pt)
@@ -279,7 +280,7 @@ void road_detection(struct point_struct *points)
                             prev_pt->next = now_pt->next;
                         }
 
-                        points->n--;
+                        points->n--; // decrease the number of points
                         aux_pt = now_pt->next;
                         free(now_pt);
                         now_pt = aux_pt;
