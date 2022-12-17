@@ -365,14 +365,14 @@ int main(int argc, char *argv[])
     //     temp = temp->next;
     // }
 
-    // // FUNCTION 3
-    // clock_gettime(CLOCK_MONOTONIC, &start);
-    // road_detection(&points1);
-    // clock_gettime(CLOCK_MONOTONIC, &end);
-    // calc = time_between_timestamp(start, end);
-    // printf("\nF3: Time to process points of file 1: %lf ms\n", calc);
-    // after_process_size1 = points1.n;
-    // printf("\n === Number of points after process: %d === \n", after_process_size1);
+    // FUNCTION 3
+    clock_gettime(CLOCK_MONOTONIC, &start);
+    road_detection(&points1);
+    clock_gettime(CLOCK_MONOTONIC, &end);
+    calc = time_between_timestamp(start, end);
+    printf("\nF3: Time to process points of file 1: %lf ms\n", calc);
+    after_process_size1 = points1.n;
+    printf("\n === Number of points after process: %d === \n", after_process_size1);
 
     divider();
 
